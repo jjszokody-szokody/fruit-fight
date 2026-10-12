@@ -12,9 +12,9 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
 @media (orientation:portrait){#rot{display:flex}}</style></head>
 <body><canvas id="c"></canvas><div id="rot"><div>📱</div>Rotate your phone<br>to fight! 🍉🍌</div><script>
 "use strict";
-const VERSION='v3';
+const VERSION='v4';
 const cv=document.getElementById('c'),ctx=cv.getContext('2d');const W=960,H=540;let sc=1,ox=0,oy=0;
-function resize(){const d=Math.min(2,devicePixelRatio||1),R=cv.getBoundingClientRect();cv.width=R.width*d;cv.height=R.height*d;cv._l=R.left;cv._t=R.top;cv._d=d;sc=Math.min(cv.width/W,cv.height/H);ox=(cv.width-W*sc)/2;oy=(cv.height-H*sc)/2;}addEventListener('resize',resize);resize();
+function resize(){const d=Math.min(2,devicePixelRatio||1),R=cv.getBoundingClientRect();cv.width=R.width*d;cv.height=R.height*d;cv._l=R.left;cv._t=R.top;cv._d=d;sc=Math.min(cv.width/W,cv.height/H);ox=(cv.width-W*sc)/2;oy=(cv.height-H*sc)/2;layoutBtns();}addEventListener('resize',resize);resize();
 // ---------- data ----------
 const FRUITS=[
 {n:'Banana',sd:'Peel trap: stun 1.8s + 8 dmg',e:'🍌',c:'#ffe135',spd:1.1,hp:100,ab:'Banana Slip',ai:'🍌',ad:'Throws a peel trap: stun 1.8s + 8 dmg',puns:["That was bananas!","Peel the power!","Split happens!"]},
@@ -38,17 +38,20 @@ const terr=x=>arena.terr(Math.max(0,Math.min(W,x)),gt);
 // ---------- input ----------
 const keys={};addEventListener('keydown',e=>{keys[e.code]=1;if(e.code==='Space'||e.code==='Enter')tapAny();});addEventListener('keyup',e=>keys[e.code]=0);
 function toGame(t){const d=cv._d;return{x:((t.clientX-cv._l)*d-ox)/sc,y:((t.clientY-cv._t)*d-oy)/sc}}
-const BR=42,BTNS=[{p:0,a:'L',x:52,y:488},{p:0,a:'R',x:146,y:488},{p:0,a:'J',x:99,y:400},{p:0,a:'A',x:250,y:478},{p:0,a:'S',x:346,y:478},{p:1,a:'S',x:614,y:478},{p:1,a:'A',x:710,y:478},{p:1,a:'L',x:814,y:488},{p:1,a:'R',x:908,y:488},{p:1,a:'J',x:861,y:400}];
+var BR=42,BTNS=[],BRc=40;
+function layoutBtns(){const w=cv.width/cv._d,h=cv.height/cv._d,m=10,g=8;const r=BRc=Math.max(30,Math.min(44,(w/2-m-24-3*g)/8,(h-2*m-g)/4.2));
+ const y1=h-m-r,y2=y1-2*r-g,X=k=>m+r+k*(2*r+g);BTNS=[];
+ for(const pl of [0,1]){const fx=x=>pl?w-x:x;[['L',X(0),y1],['R',X(1),y1],['J',(X(0)+X(1))/2,y2],['A',X(2),y1],['S',X(3),y1]].forEach(([a,x,y])=>BTNS.push({p:pl,a,x:fx(pl&&(a==='L'||a==='R')?(a==='L'?X(1):X(0)):x),y}))}}
 const TOUCH=('ontouchstart' in window)||navigator.maxTouchPoints>0||/[?&]touch/.test(location.search);
 const tin=[{},{}];
-function updTouch(e){e.preventDefault();tin[0]={};tin[1]={};for(const t of e.touches){const g=toGame(t);for(const b of BTNS)if(Math.hypot(g.x-b.x,g.y-b.y)<BR+4)tin[b.p][b.a]=1;}}
+function updTouch(e){e.preventDefault();tin[0]={};tin[1]={};if(state!=='fight')return;for(const t of e.touches){const x=t.clientX-cv._l,y=t.clientY-cv._t;let best=null,bd=BRc*1.3;for(const b of BTNS){const d=Math.hypot(x-b.x,y-b.y);if(d<bd){bd=d;best=b}}if(best)tin[best.p][best.a]=1;}}
 cv.addEventListener('touchstart',e=>{updTouch(e);for(const t of e.changedTouches)click(toGame(t));},{passive:false});
 cv.addEventListener('touchmove',updTouch,{passive:false});cv.addEventListener('touchend',updTouch,{passive:false});cv.addEventListener('touchcancel',updTouch,{passive:false});
 cv.addEventListener('mousedown',e=>click(toGame(e)));
 const cell=(s,i)=>({x:(s?490:14)+(i%3)*152,y:92+Math.floor(i/3)*150,w:146,h:144});
 function click(g){if(state==='menu'){for(let s=0;s<2;s++)for(let i=0;i<6;i++){const c=cell(s,i);if(g.x>c.x&&g.x<c.x+c.w&&g.y>c.y&&g.y<c.y+c.h)pick[s]=i}
- for(let i=-1;i<5;i++){const x=110+(i+1)*96;if(g.y>404&&g.y<440&&g.x>x&&g.x<x+90)arenaSel=i}
- if(g.y>396&&g.y<452&&g.x>700&&g.x<940)startMatch();}else if(state!=='fight')tapAny();}
+ for(let i=-1;i<5;i++){const x=110+(i+1)*96;if(g.y>392&&g.y<448&&g.x>x&&g.x<x+90)arenaSel=i}
+ if(g.y>388&&g.y<458&&g.x>692&&g.x<948)startMatch();}else if(state!=='fight')tapAny();}
 function tapAny(){if(state==='menu')startMatch();else if(state==='wheel'&&wheel.done)beginFight();else if(state==='roundEnd'&&cel.t>2)nextRound();else if(state==='matchEnd'&&cel.t>3)state='menu';}
 function inp(i){const k=i?{L:['ArrowLeft'],R:['ArrowRight'],J:['ArrowUp'],A:['Slash','Enter'],S:['Period','ShiftRight']}:{L:['KeyA'],R:['KeyD'],J:['KeyW'],A:['KeyF'],S:['KeyG','ShiftLeft']};const o={};for(const a in k)o[a]=k[a].some(c=>keys[c])||tin[i][a];return o}
 // ---------- flow ----------
@@ -243,8 +246,8 @@ function draw(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#111';ctx.fillRect(
     ctx.fillStyle=sel?'#ffe9a8':'rgba(255,255,255,.5)';ctx.fillRect(c.x+4,c.y+84,c.w-8,56);
     ctx.font='18px serif';ctx.textAlign='left';ctx.fillText(f.ai,c.x+8,c.y+105);dk('bold 13px -apple-system,Helvetica');ctx.fillStyle='#7a2e00';ctx.fillText(f.ab,c.x+32,c.y+103);
     dk('12px -apple-system,Helvetica');const wds=f.sd.split(' ');let line='',ly=c.y+120;for(const w of wds){if(ctx.measureText(line+w).width>c.w-14){ctx.fillText(line,c.x+8,ly);line='';ly+=14}line+=w+' '}ctx.fillText(line,c.x+8,ly)}}
-  ['Random','Desert','Sea','Grass','Jungle','Farm'].forEach((n,j)=>{const x=110+j*96;ctx.fillStyle=arenaSel===j-1?'#fff':'rgba(255,255,255,.4)';ctx.fillRect(x,404,90,36);txt(n,x+45,428,15)});txt('Arena:',60,428,15);
-  ctx.fillStyle='#2e9e3a';ctx.fillRect(700,404,240,46);ctx.fillStyle='#4caf50';ctx.fillRect(700,398,240,46);txt('START ▶',820,431,28);
+  ['Random','Desert','Sea','Grass','Jungle','Farm'].forEach((n,j)=>{const x=110+j*96;ctx.fillStyle=arenaSel===j-1?'#fff':'rgba(255,255,255,.4)';ctx.fillRect(x,394,90,52);txt(n,x+45,426,16)});txt('Arena:',58,426,15);
+  ctx.fillStyle='#2e9e3a';ctx.fillRect(700,400,240,52);ctx.fillStyle='#4caf50';ctx.fillRect(700,394,240,52);txt('START ▶',820,430,30);
   txt('Keys — P1: A/D move · W jump · F attack · G special    P2: ←/→ · ↑ · / attack · . special',W/2,475,13,'#fff');
   txt(`${FRUITS[pick[0]].n}  vs  ${FRUITS[pick[1]].n}`,W/2,515,24,'#ffeb3b');ctx.restore();return}
  bg();ground();
@@ -277,9 +280,6 @@ function draw(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#111';ctx.fillRect(
   txt(`${p.f.n} ${Math.ceil(p.hp)}  ${p.w?'· '+p.w.n:''}`,x+(i?300:0),62,18,'#fff',i?'right':'left');txt('★'.repeat(wins[i])+'☆'.repeat(2-wins[i]),x+(i?0:300),62,22,'#ffeb3b',i?'left':'right');abilityRing(p,i?x-26:x+326,30,20)}
  const tm=Math.max(0,timer);txt(`${Math.floor(tm/60)}:${String(Math.floor(tm%60)).padStart(2,'0')}`,W/2,40,34,tm<15?'#f44':'#fff');txt(`R${round} · ${arena.n}`,W/2,64,14);
  if(msg)txt(msg,W/2,210,46,'#ffeb3b');
- if(state==='fight'&&TOUCH){for(const b of BTNS){const on=tin[b.p][b.a];if(b.a==='S'){abilityRing(P[b.p],b.x,b.y,BR,on);continue}
-  ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.arc(b.x,b.y+4,BR,0,7);ctx.fill();ctx.fillStyle=on?'rgba(255,255,255,.75)':b.a==='A'?'rgba(255,90,60,.55)':'rgba(255,255,255,.3)';ctx.beginPath();ctx.arc(b.x,b.y+(on?3:0),BR,0,7);ctx.fill();ctx.strokeStyle=b.p?'#5ab0ff':'#ff6b6b';ctx.lineWidth=3;ctx.stroke();
-  if(b.a==='A'){ctx.save();ctx.translate(b.x,b.y-6);weaponIcon(P[b.p].w,.55);ctx.restore();txt('ATTACK',b.x,b.y+30,11)}else txt({L:'◀',R:'▶',J:'▲'}[b.a],b.x,b.y+10,30)}}
  if(state==='roundEnd'||state==='matchEnd'){const w=cel.w;ctx.fillStyle='#0006';ctx.fillRect(0,90,W,200);
   if(state==='matchEnd'){txt(`🏆 ${w.f.n.toUpperCase()} WINS THE MATCH! 🏆`,W/2,150,40,'#ffeb3b');txt(`${wins[0]} - ${wins[1]}   "${w.f.puns[0]}"`,W/2,195,24);ctx.font='70px serif';ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.fillText('👑',w.x,w.y-90-Math.abs(Math.sin(T*8))*40);txt('Fruit salad of champions! Tap for menu',W/2,265,18)}
   else{txt(`${w.f.e} ${w.f.n} wins Round ${round}!${cel.timeout?' (time up)':''}`,W/2,140,34,'#ffeb3b');
@@ -287,7 +287,12 @@ function draw(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#111';ctx.fillRect(
    if(cel.type==='blender'&&cel.t>1.5){ctx.font='90px serif';ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.fillText('🥤',w.x,w.y-10)}if(cel.type==='pun')txt(cel.pun,w.x,w.y-110,20);
    if(cel.t>2)txt('Tap / Space for next round',W/2,260,18)}}
  ctx.restore()}
-let last=performance.now();function loop(n){const dt=Math.min(.05,(n-last)/1000);last=n;update(dt);draw();requestAnimationFrame(loop)}requestAnimationFrame(loop);
+function drawControls(){if(state!=='fight'||!TOUCH)return;const d=cv._d;ctx.setTransform(d,0,0,d,0,0);
+ for(const b of BTNS){const on=tin[b.p][b.a];ctx.save();ctx.translate(b.x,b.y);ctx.scale(BRc/BR,BRc/BR);
+  if(b.a==='S')abilityRing(P[b.p],0,0,BR,on);else{
+  ctx.fillStyle='rgba(0,0,0,.3)';ctx.beginPath();ctx.arc(0,4,BR,0,7);ctx.fill();ctx.fillStyle=on?'rgba(255,255,255,.75)':b.a==='A'?'rgba(255,90,60,.6)':'rgba(255,255,255,.32)';ctx.beginPath();ctx.arc(0,on?3:0,BR,0,7);ctx.fill();ctx.strokeStyle=b.p?'#5ab0ff':'#ff6b6b';ctx.lineWidth=3.5;ctx.stroke();
+  if(b.a==='A'){ctx.save();ctx.translate(0,-6);weaponIcon(P[b.p].w,.6);ctx.restore();txt('ATTACK',0,30,12)}else txt({L:'◀',R:'▶',J:'▲'}[b.a],0,11,32)}ctx.restore()}}
+let last=performance.now();function loop(n){const dt=Math.min(.05,(n-last)/1000);last=n;update(dt);draw();drawControls();requestAnimationFrame(loop)}requestAnimationFrame(loop);
 ['gesturestart','gesturechange','dblclick','selectstart','contextmenu'].forEach(ev=>document.addEventListener(ev,e=>e.preventDefault(),{passive:false}));
 let lastTap=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-lastTap<350)e.preventDefault();lastTap=n},{passive:false});
 document.addEventListener('touchmove',e=>{if(e.touches.length>1)e.preventDefault()},{passive:false});
