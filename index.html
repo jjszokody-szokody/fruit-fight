@@ -384,7 +384,7 @@ function aiThink(dt){const D=DIFF[diff],c=P[1],o=P[0];aiT-=dt;
  if(c.face===dir&&c.cd<=0&&!(oSh&&!ranged)&&Math.random()<D.acc&&(ranged?(dist>90&&(dy<70||w.bomb)):(dist<(w.r||60)*.95&&dy<(w.ry||70))))I.A=1;
  if(!c.used&&elapsed()>=ABILITY_UNLOCK+aiSpAt&&(wantSpecial(c,o,dist,dir,dy)||elapsed()>ABILITY_UNLOCK+aiSpAt+12))I.S=1;
  cpuIn=I}
-function wantSpecial(c,o,dist,dir,dy){const f=c.face===dir,sh=o.st.shield>0;switch(c.f.n){case 'Watermelon':return f&&dist<380&&dy<60&&!sh;case 'Strawberry':case 'Orange':return f&&dist<420&&dy<50&&!sh;case 'Banana':return f&&dist>110&&dist<320;case 'Apple':return dist>90&&o.ground&&!sh;case 'Pineapple':return dist<130||c.hp<c.max*.5||projs.some(b=>b.o===0&&Math.abs(b.x-c.x)<200)}return true}
+function wantSpecial(c,o,dist,dir,dy){const f=c.face===dir,sh=o.st.shield>0;if(elapsed()>ABILITY_UNLOCK+aiSpAt+15&&f&&dist<300)return true;switch(c.f.n){case 'Watermelon':return f&&dist<380&&dy<60&&!sh;case 'Strawberry':case 'Orange':return f&&dist<420&&dy<50&&!sh;case 'Banana':return f&&dist>110&&dist<320;case 'Apple':return dist>90&&o.ground&&!sh;case 'Pineapple':return dist<130||c.hp<c.max*.5||projs.some(b=>b.o===0&&Math.abs(b.x-c.x)<200)}return true}
 // --- online (Trystero over public Nostr relays, WebRTC data channels) ---
 const APPID='fruit-fight-jjszokody-v1';
 function loadTrystero(){return window.Trystero?Promise.resolve():new Promise((res,rej)=>{const s=document.createElement('script');s.src='trystero-nostr.js';s.onload=res;s.onerror=()=>rej(new Error('load'));document.head.appendChild(s)})}
