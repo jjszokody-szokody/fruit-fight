@@ -17,7 +17,7 @@ html,body{height:100%;height:100dvh}
 @media (orientation:portrait){#rot{display:flex}}</style></head>
 <body><canvas id="c"></canvas><div id="a2hs"><span>📲 For true full screen: <b>Share</b> <span style="font-size:18px">⎋</span> &gt; <b>Add to Home Screen</b></span><span class="ar" id="a2ar">⬇️</span><button aria-label="Dismiss">✕</button></div><div id="rot"><div>📱</div>Rotate your phone<br>to fight! 🍉🍌</div><script>
 "use strict";
-const VERSION='v6';
+const VERSION='v7';
 const cv=document.getElementById('c'),ctx=cv.getContext('2d');const W=960,H=540;let sc=1,ox=0,oy=0;
 function resize(){const d=Math.min(2,devicePixelRatio||1),R=cv.getBoundingClientRect();cv.width=R.width*d;cv.height=R.height*d;cv._l=R.left;cv._t=R.top;cv._d=d;sc=Math.min(cv.width/W,cv.height/H);ox=(cv.width-W*sc)/2;oy=(cv.height-H*sc)/2;layoutBtns();}addEventListener('resize',resize);resize();
 // ---------- data ----------
@@ -46,7 +46,7 @@ const WEAP=[
 {n:'Gun',p:3,d:20,cd:1,proj:1,ps:16,g:0,em:'bullet',b:'Hitscan-fast bullet'},
 {n:'Peel Bomb',p:1,d:30,cd:1.4,proj:1,ps:7,bomb:1,g:.3,em:'bomb',b:'Lobbed, explodes'}];
 const wdmg=w=>w.d*(w.sea&&arena&&arena.sea?1.3:1);
-const ABILITY_UNLOCK=25;
+const ABILITY_UNLOCK=10;
 const ARENAS=[
 {n:'Desert',sky:['#ffb347','#ffe9b0'],sun:'#fff3a0',far:'#e9a35a',mid:'#dc9246',near:'#cf8a3e',top:'#f2cf86',soil:'#b9803f',tw:'Dunes + heat: lose 1 HP every 10s',heat:1,terr:x=>402-34*Math.sin(x/130+1)-14*Math.sin(x/57),deco:['🌵','🐪','🌵']},
 {n:'Sea',sky:['#5ec4ff','#d6f3ff'],sun:'#ffffff',far:'#4a90c8',mid:'#3a7fb8',near:'#2d6fa5',top:'#4fb3e8',soil:'#1c5fa8',tw:'Waves: slow moves, floaty jumps',slow:.6,grav:.6,sea:1,terr:(x,t)=>405-12*Math.sin(x/60-t*2)-6*Math.sin(x/23+t*3),deco:['🐟','🐙','🐠']},
@@ -61,7 +61,7 @@ const terr=x=>arena.terr(Math.max(0,Math.min(W,x)),gt);
 const keys={};addEventListener('keydown',e=>{keys[e.code]=1;if((e.code==='Space'||e.code==='Enter')&&!['search','searchFail','connecting','oppLeft'].includes(state))tapAny();});addEventListener('keyup',e=>keys[e.code]=0);
 function toGame(t){const d=cv._d;return{x:((t.clientX-cv._l)*d-ox)/sc,y:((t.clientY-cv._t)*d-oy)/sc}}
 var BR=42,BTNS=[],BRc=40;
-function layoutBtns(){const w=cv.width/cv._d,h=cv.height/cv._d,m=10,g=8;if(typeof mode!=='undefined'&&mode!=='local'){const r=BRc=Math.max(34,Math.min(56,(h-2*m-g)/4.2,(w/2-m-40-g)/4));const y1=h-m-r,y2=y1-2*r-g,X=k=>m+r+k*(2*r+g);BTNS=[{p:me,a:'L',x:X(0),y:y1},{p:me,a:'R',x:X(1),y:y1},{p:me,a:'J',x:(X(0)+X(1))/2,y:y2},{p:me,a:'A',x:w-X(0),y:y1},{p:me,a:'S',x:w-X(1),y:y1}];return}const r=BRc=Math.max(30,Math.min(44,(w/2-m-24-3*g)/8,(h-2*m-g)/4.2));
+function layoutBtns(){const w=cv.width/cv._d,h=cv.height/cv._d,m=10,g=8;if(typeof mode!=='undefined'&&mode!=='local'){const r=BRc=Math.max(28,.8*Math.min(56,(h-2*m-g)/4.2,(w/2-m-40-g)/4));const y1=h-m-r,y2=y1-2*r-g,X=k=>m+r+k*(2*r+g);BTNS=[{p:me,a:'L',x:X(0),y:y1},{p:me,a:'R',x:X(1),y:y1},{p:me,a:'J',x:(X(0)+X(1))/2,y:y2},{p:me,a:'A',x:w-X(0),y:y1},{p:me,a:'S',x:w-X(1),y:y1}];return}const r=BRc=Math.max(30,Math.min(44,(w/2-m-24-3*g)/8,(h-2*m-g)/4.2));
  const y1=h-m-r,y2=y1-2*r-g,X=k=>m+r+k*(2*r+g);BTNS=[];
  for(const pl of [0,1]){const fx=x=>pl?w-x:x;[['L',X(0),y1],['R',X(1),y1],['J',(X(0)+X(1))/2,y2],['A',X(2),y1],['S',X(3),y1]].forEach(([a,x,y])=>BTNS.push({p:pl,a,x:fx(pl&&(a==='L'||a==='R')?(a==='L'?X(1):X(0)):x),y}))}}
 const TOUCH=('ontouchstart' in window)||navigator.maxTouchPoints>0||/[?&]touch/.test(location.search);
@@ -362,7 +362,7 @@ function drawControls(){if(state!=='fight'||!TOUCH)return;const d=cv._d;ctx.setT
   if(b.a==='A'){ctx.save();ctx.translate(0,-6);weaponIcon(P[b.p].w,.6);ctx.restore();txt('ATTACK',0,30,12)}else txt({L:'◀',R:'▶',J:'▲'}[b.a],0,11,32)}ctx.restore()}}
 // ---------- modes: local / cpu / online ----------
 var mode='local',diff=1,me=0,cpuIn={},net=null,menuMsg='',searchT=0,aiT=0,aiSpAt=0,ovT=0;
-const DIFF=[{n:'Easy',react:.5,acc:.45,dodge:.15,spDelay:14},{n:'Medium',react:.25,acc:.75,dodge:.45,spDelay:5},{n:'Hard',react:.09,acc:.95,dodge:.85,spDelay:0}];
+const DIFF=[{n:'Easy',react:.5,acc:.45,dodge:.15,spDelay:6},{n:'Medium',react:.25,acc:.75,dodge:.45,spDelay:2.5},{n:'Hard',react:.09,acc:.95,dodge:.85,spDelay:0}];
 const KEYS=[{L:['KeyA'],R:['KeyD'],J:['KeyW'],A:['KeyF'],S:['KeyG','ShiftLeft']},{L:['ArrowLeft'],R:['ArrowRight'],J:['ArrowUp'],A:['Slash','Enter'],S:['Period','ShiftRight']}];
 function kin(sets,t){const o={};for(const a of ['L','R','J','A','S'])o[a]=sets.some(k=>k[a].some(c=>keys[c]))||!!t[a];return o}
 function inp(i){if(mode==='local')return kin([KEYS[i]],tin[i]);if(i===me)return kin(KEYS,tin[me]);if(mode==='cpu')return cpuIn;return net?net.rin||{}:{}}
@@ -382,7 +382,7 @@ function aiThink(dt){const D=DIFF[diff],c=P[1],o=P[0];aiT-=dt;
  if(mv&&terr(c.x+mv*40)<c.y-22)I.J=1;if(Math.random()<.03)I.J=1;
  const dy=Math.abs(o.y-c.y);
  if(c.face===dir&&c.cd<=0&&!(oSh&&!ranged)&&Math.random()<D.acc&&(ranged?(dist>90&&(dy<70||w.bomb)):(dist<(w.r||60)*.95&&dy<(w.ry||70))))I.A=1;
- if(!c.used&&elapsed()>=ABILITY_UNLOCK+aiSpAt&&wantSpecial(c,o,dist,dir,dy))I.S=1;
+ if(!c.used&&elapsed()>=ABILITY_UNLOCK+aiSpAt&&(wantSpecial(c,o,dist,dir,dy)||elapsed()>ABILITY_UNLOCK+aiSpAt+12))I.S=1;
  cpuIn=I}
 function wantSpecial(c,o,dist,dir,dy){const f=c.face===dir,sh=o.st.shield>0;switch(c.f.n){case 'Watermelon':return f&&dist<380&&dy<60&&!sh;case 'Strawberry':case 'Orange':return f&&dist<420&&dy<50&&!sh;case 'Banana':return f&&dist>110&&dist<320;case 'Apple':return dist>90&&o.ground&&!sh;case 'Pineapple':return dist<130||c.hp<c.max*.5||projs.some(b=>b.o===0&&Math.abs(b.x-c.x)<200)}return true}
 // --- online (Trystero over public Nostr relays, WebRTC data channels) ---
